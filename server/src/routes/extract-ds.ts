@@ -40,6 +40,14 @@ extractDsRouter.post('/', async (req: Request, res: Response) => {
     const ogImage = html.match(/property="og:image"\s+content="([^"]+)"/i)?.[1] ?? ''
     const title = html.match(/<title>([^<]+)<\/title>/i)?.[1] ?? normalizedUrl
 
+    // Count unique hex colors in extracted CSS as a quality signal
+    const hexColors = [...new Set((inlineCss.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []))].slice(0, 20)
+    if (hexColors.length < 3) {
+      console.warn(`[extract-ds] sparse CSS for ${normalizedUrl}: only ${hexColors.length} hex colors found — LLM will infer heavily. Consider CSS-paste fallback.`)
+    } else {
+      console.log(`[extract-ds] ${hexColors.length} hex colors extracted from ${normalizedUrl}`)
+    }
+
     // Feed to gpt-4o-mini to produce a DESIGN.md
     const prompt = `Analyze this website's design language and produce a structured DESIGN.md file.
 
@@ -48,6 +56,7 @@ Page title: ${title}
 
 CSS extracted from the page:
 ${inlineCss || '(no inline CSS found — infer from the site URL and title)'}
+Hex colors found: ${hexColors.length > 0 ? hexColors.join(', ') : '(none — infer from brand context)'}
 
 Theme color meta tag: ${themeColor || '(none)'}
 
@@ -70,7 +79,7 @@ Be specific and practical. This will be used as a design system for AI generatio
     const designMd = completion.choices[0].message.content ?? ''
 
     dsCache.set(normalizedUrl, designMd)
-    res.json({ design_system: designMd, cached: false, title })
+    res.json({ design_system: designMd, cached: false, title, low_color_signal: hexColors.length < 3 })
   } catch (e) {
     console.error('Extract DS error:', e)
     res.status(500).json({ error: (e as Error).message })

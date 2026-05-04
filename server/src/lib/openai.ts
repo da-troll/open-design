@@ -46,14 +46,19 @@ export async function generateImage(prompt: string): Promise<string> {
 }
 
 // Resolve <img-gen prompt="..."> tags in artifact HTML (max 4 per artifact)
+// gpt-image-1 low quality = ~$0.011/image → 4 images = ~$0.044 per artifact
 export async function resolveImgGenTags(html: string): Promise<string> {
   const IMG_GEN_RE = /<img-gen\s+prompt="([^"]+)"[^>]*\/?>/gi
   const matches = [...html.matchAll(IMG_GEN_RE)].slice(0, 4)
   if (!matches.length) return html
 
+  const t0 = Date.now()
   const resolved = await Promise.allSettled(
     matches.map(m => generateImage(m[1]))
   )
+  const imgCount = resolved.filter(r => r.status === 'fulfilled').length
+  const estCost = (imgCount * 0.011).toFixed(3)
+  console.log(`[img-gen] ${imgCount}/${matches.length} resolved in ${Date.now() - t0}ms (est $${estCost})`)
 
   let result = html
   for (let i = 0; i < matches.length; i++) {
@@ -77,6 +82,8 @@ export async function resolveImgGenTags(html: string): Promise<string> {
 
 // Inject click-tracking script into artifact HTML for direct manipulation
 export function injectClickTracker(html: string): string {
+  // Use '*' as target origin since srcdoc iframes have null origin;
+  // parent listener validates by checking message.type === 'DESIGN_CLICK'.
   const script = `<script>
 (function(){
   document.addEventListener('click', function(e){
@@ -89,7 +96,7 @@ export function injectClickTracker(html: string): string {
       var selector = node.tagName.toLowerCase();
       if(node.id) selector += '#'+node.id;
       else if(node.className && typeof node.className === 'string'){
-        selector += '.'+node.className.trim().split(/\s+/).slice(0,2).join('.');
+        selector += '.'+node.className.trim().split(/\\s+/).slice(0,2).join('.');
       }
       path.unshift(selector);
       node = node.parentElement;

@@ -76,6 +76,10 @@ Additional context: ${brief.extra || 'none'}`
 
     const variants = await Promise.all(variantPromises)
 
+    // Rough cost log: 3× gpt-4o generations (~$0.03 input + $0.06 output est per call) + img-gen logged separately
+    const estGenCost = (3 * 0.09).toFixed(2)
+    console.log(`[generate] 3 variants complete. Est LLM cost: ~$${estGenCost} (excl. img-gen)`)
+
     const artifactId = await saveArtifact({
       brief,
       design_system: design_system_id,
