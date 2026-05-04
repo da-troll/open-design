@@ -1,0 +1,21 @@
+{
+  "project_name": "Open Design",
+  "description": "AI design tool with multi-variant parallel generation, direct-manipulation element editing, URL-to-design-system extraction, voice input, and multi-breakpoint preview wall.",
+  "tech_stack": ["React", "TypeScript", "Vite", "Tailwind CSS", "Express", "OpenAI API", "Supabase"],
+  "build_date": "2026-05-04",
+  "build_time_hours": 3,
+  "status": "complete",
+  "features": [
+    "3 parallel variant generation with editorial, minimal, and utility direction seeds",
+    "Direct-manipulation element editing via iframe postMessage click capture",
+    "URL → design system extraction (server-side fetch + gpt-4o-mini CSS analysis)",
+    "Voice brief input with whisper-1 transcription + gpt-4o-mini brief extraction",
+    "Multi-breakpoint preview wall: desktop, tablet, iPhone 15, Pixel 7 with device frames",
+    "5 pre-baked design systems: Linear, Stripe, Apple, Soft Warm, Editorial Monocle",
+    "Supabase-backed generation history with iteration tree"
+  ],
+  "live_url": "https://mvp.trollefsen.com/2026-05-04-open-design/",
+  "github_url": "https://github.com/da-troll/open-design",
+  "inspired_by": "nexu-io/open-design",
+  "visibility": "public"
+}
